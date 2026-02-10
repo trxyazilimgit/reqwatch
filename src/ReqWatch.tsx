@@ -20,8 +20,11 @@ import {
   statusColor, methodBadgeStyle, urlTextStyle,
   durationStyle, timeStyle, chevronStyle, copyBtnSmallStyle,
   sourceBadgeStyle, serverDotStyle,
+  tabGroupStyle, tabBtnStyle,
   colors,
 } from './styles'
+
+type SourceTab = 'all' | 'client' | 'server'
 
 const SPACER_ID = '__reqwatch-spacer-style'
 
@@ -43,6 +46,7 @@ export function ReqWatch({
   defaultOpen = false,
   storageKey = '__reqwatch',
   serverPort = 4819,
+  serverUrl,
 }: ReqWatchProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen)
   const [dock, setDock] = useState<DockPosition>(defaultDock)
@@ -54,6 +58,7 @@ export function ReqWatch({
   const [filter, setFilter] = useState('')
   const [isDragging, setIsDragging] = useState(false)
   const [handleHovered, setHandleHovered] = useState(false)
+  const [activeTab, setActiveTab] = useState<SourceTab>('all')
 
   // Log handler shared by both interceptors
   const handleLog = useCallback((log: RequestLog) => {
@@ -64,7 +69,7 @@ export function ReqWatch({
   useFetchInterceptor(maxLogs, handleLog)
 
   // Server-side SSE connection
-  const serverConnected = useServerLogs(serverPort, handleLog)
+  const serverConnected = useServerLogs(serverPort, handleLog, serverUrl)
 
   // Restore state from localStorage
   useEffect(() => {
@@ -178,14 +183,17 @@ export function ReqWatch({
 
   if (!mounted || !isOpen) return null
 
+  const tabFiltered = activeTab === 'all' ? logs : logs.filter(l => l.source === activeTab)
   const filtered = filter
-    ? logs.filter(l =>
+    ? tabFiltered.filter(l =>
         l.url.toLowerCase().includes(filter.toLowerCase()) ||
         l.method.toLowerCase().includes(filter.toLowerCase()) ||
-        String(l.status).includes(filter) ||
-        l.source.includes(filter.toLowerCase())
+        String(l.status).includes(filter)
       )
-    : logs
+    : tabFiltered
+
+  const clientCount = logs.filter(l => l.source === 'client').length
+  const serverCount = logs.filter(l => l.source === 'server').length
 
   return (
     <div style={getPanelStyle(dock, size)}>
@@ -212,6 +220,19 @@ export function ReqWatch({
             title={serverConnected ? 'Server connected' : 'Server disconnected'}
           />
         )}
+
+        {/* Source tabs */}
+        <div style={tabGroupStyle}>
+          <button onClick={() => setActiveTab('all')} style={tabBtnStyle(activeTab === 'all')}>
+            All ({logs.length})
+          </button>
+          <button onClick={() => setActiveTab('client')} style={tabBtnStyle(activeTab === 'client')}>
+            CLI ({clientCount})
+          </button>
+          <button onClick={() => setActiveTab('server')} style={tabBtnStyle(activeTab === 'server')}>
+            SSR ({serverCount})
+          </button>
+        </div>
 
         <input
           type="text"

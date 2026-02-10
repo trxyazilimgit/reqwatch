@@ -310,4 +310,27 @@ export const serverDotStyle = (connected: boolean): CSSProperties => ({
   transition: 'background-color 0.3s',
 })
 
+export const tabGroupStyle: CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  border: `1px solid ${c.surface1}`,
+  borderRadius: 4,
+  overflow: 'hidden',
+  flexShrink: 0,
+}
+
+export function tabBtnStyle(active: boolean): CSSProperties {
+  return {
+    padding: '3px 8px',
+    background: active ? c.surface1 : 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    color: active ? c.text : c.overlay0,
+    fontSize: '10px',
+    fontWeight: 600,
+    fontFamily: 'inherit',
+    transition: 'background-color 0.15s, color 0.15s',
+  }
+}
+
 export const colors = c

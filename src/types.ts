@@ -26,8 +26,10 @@ export interface ReqWatchProps {
   defaultOpen?: boolean
   /** localStorage key prefix. Default: "__reqwatch" */
   storageKey?: string
-  /** Port for server-side log SSE connection. Default: 4819. Set to 0 to disable. */
+  /** Port for server-side log SSE connection (local dev). Default: 4819. Set to 0 to disable. */
   serverPort?: number
+  /** Full SSE URL for production (e.g. "https://api.example.com/_reqwatch/events"). Overrides serverPort when set. */
+  serverUrl?: string
 }
 
 export interface StoredState {

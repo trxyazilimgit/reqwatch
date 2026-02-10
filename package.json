@@ -1,6 +1,6 @@
 {
-  "name": "reqwatch",
-  "version": "0.1.0",
+  "name": "@trxyazilim/reqwatch",
+  "version": "0.2.0",
   "description": "Drop-in React DevTools panel for monitoring HTTP requests",
   "main": "dist/index.js",
   "module": "dist/index.mjs",

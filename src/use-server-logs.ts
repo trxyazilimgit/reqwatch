@@ -4,15 +4,18 @@ import type { RequestLog } from './types'
 export function useServerLogs(
   port: number,
   onLog: (log: RequestLog) => void,
+  serverUrl?: string,
 ): boolean {
   const onLogRef = useRef(onLog)
   onLogRef.current = onLog
   const [connected, setConnected] = useState(false)
 
   useEffect(() => {
-    if (typeof window === 'undefined' || port === 0) return
+    if (typeof window === 'undefined') return
 
-    const url = `http://127.0.0.1:${port}/events`
+    const url = serverUrl || (port === 0 ? null : `http://127.0.0.1:${port}/events`)
+    if (!url) return
+
     let es: EventSource | null = null
     let retries = 0
     const MAX_RETRIES = 5
@@ -22,7 +25,7 @@ export function useServerLogs(
     function connect() {
       if (disposed) return
 
-      es = new EventSource(url)
+      es = new EventSource(url!)
 
       es.onopen = () => {
         retries = 0
@@ -58,7 +61,7 @@ export function useServerLogs(
       clearTimeout(retryTimeout)
       setConnected(false)
     }
-  }, [port])
+  }, [port, serverUrl])
 
   return connected
 }
