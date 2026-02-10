@@ -12,7 +12,8 @@ import {
 } from './icons'
 import {
   DEFAULT_SIZE, getPanelStyle, getHandleStyle,
-  headerStyle, titleStyle, countStyle, filterInputStyle,
+  headerWrapperStyle, headerTopStyle, headerBottomStyle,
+  titleStyle, countStyle, filterInputStyle,
   dockGroupStyle, dockBtnStyle, iconBtnStyle,
   logListStyle, emptyStyle, logItemStyle, logBtnStyle,
   expandedStyle, endpointRowStyle, curlBtnStyle,
@@ -47,6 +48,7 @@ export function ReqWatch({
   storageKey = '__reqwatch',
   serverPort = 4819,
   serverUrl,
+  serverToken,
 }: ReqWatchProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen)
   const [dock, setDock] = useState<DockPosition>(defaultDock)
@@ -69,7 +71,7 @@ export function ReqWatch({
   useFetchInterceptor(maxLogs, handleLog)
 
   // Server-side SSE connection
-  const serverConnected = useServerLogs(serverPort, handleLog, serverUrl)
+  const serverConnected = useServerLogs(serverPort, handleLog, serverUrl, serverToken)
 
   // Restore state from localStorage
   useEffect(() => {
@@ -209,84 +211,89 @@ export function ReqWatch({
       />
 
       {/* Header */}
-      <div style={headerStyle}>
-        <span style={titleStyle}>ReqWatch</span>
-        <span style={countStyle}>({filtered.length})</span>
+      <div style={headerWrapperStyle}>
+        {/* Top row: title, server dot, dock, clear, close */}
+        <div style={headerTopStyle}>
+          <span style={titleStyle}>ReqWatch</span>
+          <span style={countStyle}>({filtered.length})</span>
 
-        {/* Server connection indicator */}
-        {serverPort !== 0 && (
-          <span
-            style={serverDotStyle(serverConnected)}
-            title={serverConnected ? 'Server connected' : 'Server disconnected'}
+          {serverPort !== 0 && (
+            <span
+              style={serverDotStyle(serverConnected)}
+              title={serverConnected ? 'Server connected' : 'Server disconnected'}
+            />
+          )}
+
+          <div style={{ flex: 1 }} />
+
+          <div style={dockGroupStyle}>
+            <button
+              onClick={() => changeDock('left')}
+              style={dockBtnStyle(dock === 'left')}
+              title="Dock left"
+            >
+              <IconPanelLeft />
+            </button>
+            <button
+              onClick={() => changeDock('bottom')}
+              style={dockBtnStyle(dock === 'bottom')}
+              title="Dock bottom"
+            >
+              <IconPanelBottom />
+            </button>
+            <button
+              onClick={() => changeDock('right')}
+              style={dockBtnStyle(dock === 'right')}
+              title="Dock right"
+            >
+              <IconPanelRight />
+            </button>
+          </div>
+
+          <button
+            onClick={() => setLogs([])}
+            style={iconBtnStyle}
+            title="Clear"
+            onMouseEnter={e => { e.currentTarget.style.backgroundColor = colors.surface0 }}
+            onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent' }}
+          >
+            <IconTrash />
+          </button>
+          <button
+            onClick={() => setIsOpen(false)}
+            style={iconBtnStyle}
+            title={`Close (${hotkey})`}
+            onMouseEnter={e => { e.currentTarget.style.backgroundColor = colors.surface0 }}
+            onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent' }}
+          >
+            <IconX />
+          </button>
+        </div>
+
+        {/* Bottom row: source tabs + filter */}
+        <div style={headerBottomStyle}>
+          <div style={tabGroupStyle}>
+            <button onClick={() => setActiveTab('all')} style={tabBtnStyle(activeTab === 'all')}>
+              All ({logs.length})
+            </button>
+            <button onClick={() => setActiveTab('client')} style={tabBtnStyle(activeTab === 'client')}>
+              CLI ({clientCount})
+            </button>
+            <button onClick={() => setActiveTab('server')} style={tabBtnStyle(activeTab === 'server')}>
+              SSR ({serverCount})
+            </button>
+          </div>
+
+          <input
+            type="text"
+            value={filter}
+            onChange={e => setFilter(e.target.value)}
+            placeholder="Filter..."
+            style={filterInputStyle}
+            onFocus={e => { e.currentTarget.style.borderColor = colors.blue }}
+            onBlur={e => { e.currentTarget.style.borderColor = colors.surface1 }}
           />
-        )}
-
-        {/* Source tabs */}
-        <div style={tabGroupStyle}>
-          <button onClick={() => setActiveTab('all')} style={tabBtnStyle(activeTab === 'all')}>
-            All ({logs.length})
-          </button>
-          <button onClick={() => setActiveTab('client')} style={tabBtnStyle(activeTab === 'client')}>
-            CLI ({clientCount})
-          </button>
-          <button onClick={() => setActiveTab('server')} style={tabBtnStyle(activeTab === 'server')}>
-            SSR ({serverCount})
-          </button>
         </div>
-
-        <input
-          type="text"
-          value={filter}
-          onChange={e => setFilter(e.target.value)}
-          placeholder="Filter by URL, method, status, source..."
-          style={filterInputStyle}
-          onFocus={e => { e.currentTarget.style.borderColor = colors.blue }}
-          onBlur={e => { e.currentTarget.style.borderColor = colors.surface1 }}
-        />
-
-        {/* Dock buttons */}
-        <div style={dockGroupStyle}>
-          <button
-            onClick={() => changeDock('left')}
-            style={dockBtnStyle(dock === 'left')}
-            title="Dock left"
-          >
-            <IconPanelLeft />
-          </button>
-          <button
-            onClick={() => changeDock('bottom')}
-            style={dockBtnStyle(dock === 'bottom')}
-            title="Dock bottom"
-          >
-            <IconPanelBottom />
-          </button>
-          <button
-            onClick={() => changeDock('right')}
-            style={dockBtnStyle(dock === 'right')}
-            title="Dock right"
-          >
-            <IconPanelRight />
-          </button>
-        </div>
-
-        <button
-          onClick={() => setLogs([])}
-          style={iconBtnStyle}
-          title="Clear"
-          onMouseEnter={e => { e.currentTarget.style.backgroundColor = colors.surface0 }}
-          onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent' }}
-        >
-          <IconTrash />
-        </button>
-        <button
-          onClick={() => setIsOpen(false)}
-          style={iconBtnStyle}
-          title={`Close (${hotkey})`}
-          onMouseEnter={e => { e.currentTarget.style.backgroundColor = colors.surface0 }}
-          onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent' }}
-        >
-          <IconX />
-        </button>
       </div>
 
       {/* Log list */}

@@ -61,13 +61,23 @@ export function getHandleStyle(dock: DockPosition): CSSProperties {
   return { ...base, top: 0, left: 0, bottom: 0, width: 6, cursor: 'ew-resize' }
 }
 
-export const headerStyle: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  padding: '6px 12px',
+export const headerWrapperStyle: CSSProperties = {
   backgroundColor: c.mantle,
   borderBottom: `1px solid ${c.surface1}`,
   flexShrink: 0,
+}
+
+export const headerTopStyle: CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  padding: '6px 12px',
+  gap: 8,
+}
+
+export const headerBottomStyle: CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  padding: '0 12px 6px',
   gap: 8,
 }
 

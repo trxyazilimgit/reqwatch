@@ -16,7 +16,7 @@ export default defineConfig([
   {
     entry: ['src/server.ts'],
     format: ['esm', 'cjs'],
-    dts: true,
+    dts: false,
     platform: 'node',
     clean: false,
     minify: true,

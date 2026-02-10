@@ -1,6 +1,6 @@
 {
   "name": "@trxyazilim/reqwatch",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Drop-in React DevTools panel for monitoring HTTP requests",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -12,7 +12,6 @@
       "require": "./dist/index.js"
     },
     "./server": {
-      "types": "./dist/server.d.ts",
       "import": "./dist/server.mjs",
       "require": "./dist/server.js"
     }

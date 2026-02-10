@@ -1,10 +1,28 @@
 import { useEffect, useRef, useState } from 'react'
 import type { RequestLog } from './types'
 
+function getOrCreateSessionId(): string {
+  const COOKIE_NAME = '__reqwatch_id'
+
+  // Check existing cookie
+  const match = document.cookie.match(new RegExp(`(?:^|; )${COOKIE_NAME}=([^;]+)`))
+  if (match) return match[1]
+
+  // Generate new ID
+  const id = crypto.randomUUID()
+
+  // Set cookie (session cookie + 30 days for persistence)
+  const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toUTCString()
+  document.cookie = `${COOKIE_NAME}=${id}; path=/; expires=${expires}; SameSite=Lax`
+
+  return id
+}
+
 export function useServerLogs(
   port: number,
   onLog: (log: RequestLog) => void,
   serverUrl?: string,
+  serverToken?: string,
 ): boolean {
   const onLogRef = useRef(onLog)
   onLogRef.current = onLog
@@ -13,8 +31,15 @@ export function useServerLogs(
   useEffect(() => {
     if (typeof window === 'undefined') return
 
-    const url = serverUrl || (port === 0 ? null : `http://127.0.0.1:${port}/events`)
-    if (!url) return
+    const sessionId = getOrCreateSessionId()
+
+    // Build SSE URL with session ID and optional token
+    let baseUrl = serverUrl || (port === 0 ? null : `http://127.0.0.1:${port}/events`)
+    if (!baseUrl) return
+
+    const url = new URL(baseUrl)
+    url.searchParams.set('id', sessionId)
+    if (serverToken) url.searchParams.set('token', serverToken)
 
     let es: EventSource | null = null
     let retries = 0
@@ -25,7 +50,7 @@ export function useServerLogs(
     function connect() {
       if (disposed) return
 
-      es = new EventSource(url!)
+      es = new EventSource(url.toString())
 
       es.onopen = () => {
         retries = 0
@@ -61,7 +86,7 @@ export function useServerLogs(
       clearTimeout(retryTimeout)
       setConnected(false)
     }
-  }, [port, serverUrl])
+  }, [port, serverUrl, serverToken])
 
   return connected
 }
