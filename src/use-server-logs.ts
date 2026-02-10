@@ -36,7 +36,7 @@ export function useServerLogs(
     let baseUrl = serverUrl || (port === 0 ? null : `http://127.0.0.1:${port}/events`)
     if (!baseUrl) return
 
-    const url = new URL(baseUrl)
+    const url = new URL(baseUrl, window.location.origin)
     url.searchParams.set('id', sessionId)
 
     let es: EventSource | null = null
