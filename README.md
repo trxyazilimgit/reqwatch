@@ -1,33 +1,47 @@
-# reqwatch
+# @trxyazilim/reqwatch
 
 Drop-in React DevTools panel for monitoring HTTP requests — both **client-side and server-side**. Zero configuration for client requests. Add one file to also capture server-side fetch calls.
 
 ## Install
 
 ```bash
-npm install reqwatch
+npm install @trxyazilim/reqwatch
 # or
-bun add reqwatch
+bun add @trxyazilim/reqwatch
 # or
-yarn add reqwatch
+yarn add @trxyazilim/reqwatch
 ```
 
 ## Quick Start (Client Only)
 
 ```tsx
-import { ReqWatch } from 'reqwatch'
+// components/reqwatch-client.tsx
+'use client'
+
+import { ReqWatch } from '@trxyazilim/reqwatch'
+
+export function ReqWatchClient() {
+  return <ReqWatch />
+}
+```
+
+```tsx
+// app/layout.tsx
+import { ReqWatchClient } from '@/components/reqwatch-client'
 
 export default function Layout({ children }) {
   return (
     <>
       {children}
-      <ReqWatch />
+      <ReqWatchClient />
     </>
   )
 }
 ```
 
 This captures all **client-side** `fetch` calls automatically.
+
+> **Note:** ReqWatch is a client component (`'use client'`). If your layout is a Server Component (Next.js App Router), wrap it in a separate client component as shown above.
 
 ## Full Setup (Client + Server)
 
@@ -37,7 +51,7 @@ To also capture **server-side** fetch calls (Server Actions, API routes, SSR dat
 // instrumentation.ts (project root)
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
-    await import('reqwatch/server')
+    await import('@trxyazilim/reqwatch/server')
   }
 }
 ```
@@ -45,6 +59,33 @@ export async function register() {
 That's it. The server module patches `global.fetch` and streams logs to the client via SSE. Each log shows an **SSR** or **CLI** badge so you can tell where the request originated.
 
 Toggle the panel with **Ctrl+D** (configurable).
+
+## Production Setup
+
+For production, you need a custom SSE URL since the default `127.0.0.1:4819` is only accessible locally:
+
+```tsx
+<ReqWatch
+  serverUrl="https://api.example.com/_reqwatch/events"
+  serverToken="your-secret-token"
+/>
+```
+
+Set the matching secret on the server:
+
+```env
+REQWATCH_SECRET=your-secret-token
+```
+
+### Session Isolation
+
+Each browser session gets a unique ID stored as a cookie (`__reqwatch_id`). Server logs are only sent to the matching session — users never see each other's requests. When no session context is available (e.g. background jobs, cron), logs are broadcast to all connected clients.
+
+### Security
+
+- **REQWATCH_SECRET**: When set, SSE clients must provide a matching `token` parameter to connect. Unauthorized requests get a `401` response.
+- **Cookie isolation**: Server reads the `__reqwatch_id` cookie from the request context (via `next/headers`) and only sends logs to the matching SSE client.
+- **Zero overhead**: When no SSE clients are connected, the fetch patch does nothing — it calls the original `fetch` directly with no interception.
 
 ## Props
 
@@ -55,42 +96,49 @@ Toggle the panel with **Ctrl+D** (configurable).
 | `maxLogs` | `number` | `100` | Maximum number of logs to keep |
 | `defaultOpen` | `boolean` | `false` | Whether panel starts open |
 | `storageKey` | `string` | `"__reqwatch"` | localStorage key prefix |
-| `serverPort` | `number` | `4819` | SSE port for server logs. Set to `0` to disable |
+| `serverPort` | `number` | `4819` | SSE port for server logs (local dev). Set to `0` to disable |
+| `serverUrl` | `string` | — | Full SSE URL for production. Overrides `serverPort` when set |
+| `serverToken` | `string` | — | Secret token for SSE authentication. Must match `REQWATCH_SECRET` env on server |
 
 ## Features
 
 - **Client + Server interception** — captures both `window.fetch` and `global.fetch`
 - **SSE transport** — server logs stream to the browser in real-time
-- **Source badges** — SSR (server) and CLI (client) labels on each request
+- **Source tabs** — filter by All, CLI (client), or SSR (server) requests
+- **Source badges** — SSR and CLI labels on each request
 - **Connection indicator** — green dot when server SSE is connected
+- **Session isolation** — cookie-based, each user only sees their own server logs
+- **Token auth** — optional `REQWATCH_SECRET` for SSE endpoint protection
 - **Dock positions** — bottom, left, right with toggle buttons
 - **Resizable** — drag the panel edge to resize
-- **Filter** — search by URL, method, status code, or source
+- **Filter** — search by URL, method, or status code
 - **cURL copy** — copy any request as a cURL command
 - **JSON copy** — copy request/response bodies
 - **localStorage persistence** — remembers panel state across reloads
 - **Viewport adjustment** — page content shifts so it's never hidden behind the panel
 - **Dark theme** — Catppuccin Mocha color scheme
 - **Zero dependencies** — only requires React 18+
+- **Zero overhead** — no performance impact when no SSE clients are connected
 
 ## How It Works
 
-**Client side**: Overrides `window.fetch` when mounted, restores original on unmount. Clones responses before reading.
+**Client side**: Overrides `window.fetch` when mounted, restores original on unmount. Clones responses before reading so your app is unaffected.
 
-**Server side**: `reqwatch/server` patches `global.fetch` and starts an SSE server on port 4819 (configurable via `REQWATCH_PORT` env). The client component connects to this SSE stream and merges server logs with client logs.
+**Server side**: `@trxyazilim/reqwatch/server` patches `global.fetch` and starts an SSE server on port 4819 (configurable via `REQWATCH_PORT` env). Uses `Symbol.for()` to survive hot-reloads. The client component connects to this SSE stream and merges server logs with client logs. Binary/non-text responses are skipped for performance.
 
 ## Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `REQWATCH_PORT` | `4819` | Port for the server-side SSE server |
+| `REQWATCH_SECRET` | — | Secret token for SSE endpoint authentication |
 
 ## Conditional Rendering
 
 Only include ReqWatch in development:
 
 ```tsx
-{process.env.NODE_ENV === 'development' && <ReqWatch />}
+{process.env.NODE_ENV === 'development' && <ReqWatchClient />}
 ```
 
 ## License
