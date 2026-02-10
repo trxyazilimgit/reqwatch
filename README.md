@@ -65,17 +65,16 @@ Toggle the panel with **Ctrl+D** (configurable).
 For production, you need a custom SSE URL since the default `127.0.0.1:4819` is only accessible locally:
 
 ```tsx
-<ReqWatch
-  serverUrl="https://api.example.com/_reqwatch/events"
-  serverToken="your-secret-token"
-/>
+<ReqWatch serverUrl="https://api.example.com/_reqwatch/events" />
 ```
 
-Set the matching secret on the server:
+Restrict which origins can connect to the SSE endpoint:
 
 ```env
-REQWATCH_SECRET=your-secret-token
+REQWATCH_ORIGINS=https://example.com,https://admin.example.com
 ```
+
+When `REQWATCH_ORIGINS` is not set, all origins are allowed (convenient for local dev). When set, only listed origins can connect — others get a `403 Forbidden` response.
 
 ### Session Isolation
 
@@ -83,7 +82,7 @@ Each browser session gets a unique ID stored as a cookie (`__reqwatch_id`). Serv
 
 ### Security
 
-- **REQWATCH_SECRET**: When set, SSE clients must provide a matching `token` parameter to connect. Unauthorized requests get a `401` response.
+- **Origin restriction**: `REQWATCH_ORIGINS` env controls which domains can connect to the SSE endpoint. Server-side check — cannot be bypassed from the browser.
 - **Cookie isolation**: Server reads the `__reqwatch_id` cookie from the request context (via `next/headers`) and only sends logs to the matching SSE client.
 - **Zero overhead**: When no SSE clients are connected, the fetch patch does nothing — it calls the original `fetch` directly with no interception.
 
@@ -98,7 +97,6 @@ Each browser session gets a unique ID stored as a cookie (`__reqwatch_id`). Serv
 | `storageKey` | `string` | `"__reqwatch"` | localStorage key prefix |
 | `serverPort` | `number` | `4819` | SSE port for server logs (local dev). Set to `0` to disable |
 | `serverUrl` | `string` | — | Full SSE URL for production. Overrides `serverPort` when set |
-| `serverToken` | `string` | — | Secret token for SSE authentication. Must match `REQWATCH_SECRET` env on server |
 
 ## Features
 
@@ -108,7 +106,7 @@ Each browser session gets a unique ID stored as a cookie (`__reqwatch_id`). Serv
 - **Source badges** — SSR and CLI labels on each request
 - **Connection indicator** — green dot when server SSE is connected
 - **Session isolation** — cookie-based, each user only sees their own server logs
-- **Token auth** — optional `REQWATCH_SECRET` for SSE endpoint protection
+- **Origin restriction** — server-side `REQWATCH_ORIGINS` env to whitelist domains
 - **Dock positions** — bottom, left, right with toggle buttons
 - **Resizable** — drag the panel edge to resize
 - **Filter** — search by URL, method, or status code
@@ -131,7 +129,7 @@ Each browser session gets a unique ID stored as a cookie (`__reqwatch_id`). Serv
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `REQWATCH_PORT` | `4819` | Port for the server-side SSE server |
-| `REQWATCH_SECRET` | — | Secret token for SSE endpoint authentication |
+| `REQWATCH_ORIGINS` | — | Comma-separated list of allowed origins (e.g. `https://example.com,https://admin.example.com`). When not set, all origins are allowed |
 
 ## Conditional Rendering
 

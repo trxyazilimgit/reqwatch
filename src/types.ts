@@ -30,8 +30,6 @@ export interface ReqWatchProps {
   serverPort?: number
   /** Full SSE URL for production (e.g. "https://api.example.com/_reqwatch/events"). Overrides serverPort when set. */
   serverUrl?: string
-  /** Secret token for SSE authentication. Must match REQWATCH_SECRET env on server. */
-  serverToken?: string
 }
 
 export interface StoredState {

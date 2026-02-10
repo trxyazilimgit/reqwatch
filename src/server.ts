@@ -18,7 +18,9 @@ const g = globalThis as Record<symbol, unknown>
 if (!g[PATCHED]) {
   g[PATCHED] = true
 
-  const SECRET = process.env.REQWATCH_SECRET || ''
+  const ALLOWED_ORIGINS = process.env.REQWATCH_ORIGINS
+    ? process.env.REQWATCH_ORIGINS.split(',').map(s => s.trim())
+    : null // null = allow all (dev mode)
   const clients = new Map<string, SSEClient>() // sessionId → client
   g[CLIENTS] = clients
 
@@ -101,9 +103,19 @@ if (!g[PATCHED]) {
   const PORT = parseInt(process.env.REQWATCH_PORT || '4819', 10)
 
   const server = createServer((req: IncomingMessage, res: ServerResponse) => {
-    res.setHeader('Access-Control-Allow-Origin', '*')
+    const origin = req.headers.origin || ''
+
+    // Origin check: reject if REQWATCH_ORIGINS is set and origin doesn't match
+    if (ALLOWED_ORIGINS && origin && !ALLOWED_ORIGINS.includes(origin)) {
+      res.writeHead(403)
+      res.end('Forbidden')
+      return
+    }
+
+    res.setHeader('Access-Control-Allow-Origin', origin || '*')
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
     res.setHeader('Access-Control-Allow-Headers', '*')
+    res.setHeader('Vary', 'Origin')
 
     if (req.method === 'OPTIONS') {
       res.writeHead(204)
@@ -114,13 +126,6 @@ if (!g[PATCHED]) {
     const reqUrl = new URL(req.url || '/', `http://127.0.0.1:${PORT}`)
 
     if (reqUrl.pathname === '/events') {
-      // Auth check: REQWATCH_SECRET
-      if (SECRET && reqUrl.searchParams.get('token') !== SECRET) {
-        res.writeHead(401)
-        res.end('Unauthorized')
-        return
-      }
-
       const sessionId = reqUrl.searchParams.get('id') || ''
       if (!sessionId) {
         res.writeHead(400)
@@ -162,7 +167,7 @@ if (!g[PATCHED]) {
 
   server.listen(PORT, '127.0.0.1', () => {
     console.log(`[reqwatch] Server interceptor active — SSE on http://127.0.0.1:${PORT}/events`)
-    if (SECRET) console.log(`[reqwatch] Secret token required for SSE access`)
+    if (ALLOWED_ORIGINS) console.log(`[reqwatch] Allowed origins: ${ALLOWED_ORIGINS.join(', ')}`)
   })
 
   server.on('error', (err: NodeJS.ErrnoException) => {

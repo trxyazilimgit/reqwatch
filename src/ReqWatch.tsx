@@ -48,7 +48,6 @@ export function ReqWatch({
   storageKey = '__reqwatch',
   serverPort = 4819,
   serverUrl,
-  serverToken,
 }: ReqWatchProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen)
   const [dock, setDock] = useState<DockPosition>(defaultDock)
@@ -71,7 +70,7 @@ export function ReqWatch({
   useFetchInterceptor(maxLogs, handleLog)
 
   // Server-side SSE connection
-  const serverConnected = useServerLogs(serverPort, handleLog, serverUrl, serverToken)
+  const serverConnected = useServerLogs(serverPort, handleLog, serverUrl)
 
   // Restore state from localStorage
   useEffect(() => {

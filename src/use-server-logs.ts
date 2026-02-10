@@ -22,7 +22,6 @@ export function useServerLogs(
   port: number,
   onLog: (log: RequestLog) => void,
   serverUrl?: string,
-  serverToken?: string,
 ): boolean {
   const onLogRef = useRef(onLog)
   onLogRef.current = onLog
@@ -39,7 +38,6 @@ export function useServerLogs(
 
     const url = new URL(baseUrl)
     url.searchParams.set('id', sessionId)
-    if (serverToken) url.searchParams.set('token', serverToken)
 
     let es: EventSource | null = null
     let retries = 0
@@ -86,7 +84,7 @@ export function useServerLogs(
       clearTimeout(retryTimeout)
       setConnected(false)
     }
-  }, [port, serverUrl, serverToken])
+  }, [port, serverUrl])
 
   return connected
 }
