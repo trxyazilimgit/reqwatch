@@ -165,8 +165,9 @@ if (!g[PATCHED]) {
     }
   })
 
-  server.listen(PORT, '127.0.0.1', () => {
-    console.log(`[reqwatch] Server interceptor active — SSE on http://127.0.0.1:${PORT}/events`)
+  const BIND = process.env.REQWATCH_HOST || '0.0.0.0'
+  server.listen(PORT, BIND, () => {
+    console.log(`[reqwatch] Server interceptor active — SSE on http://${BIND}:${PORT}/events`)
     if (ALLOWED_ORIGINS) console.log(`[reqwatch] Allowed origins: ${ALLOWED_ORIGINS.join(', ')}`)
   })
 
