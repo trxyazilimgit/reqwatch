@@ -2,7 +2,7 @@
 
 Drop-in React DevTools panel for monitoring HTTP requests — both **client-side and server-side**. Zero configuration for client requests. Add one file to also capture server-side fetch calls.
 
-<img width="836" height="1606" alt="8d44ae46-b663-41a6-a6c2-011223007626" src="https://github.com/user-attachments/assets/a9025607-f58c-477a-8bce-83bf16b1190b" />
+<img width="836" height="1606" alt="8d44ae46-b663-41a6-a6c2-011223007626" src="https://github.com/user-attachments/assets/4e62dc22-2367-4d69-a9b9-b066cf6fb046" />
 
 ## Install
 
