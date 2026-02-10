@@ -1,6 +1,6 @@
 {
   "name": "@trxyazilim/reqwatch",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Drop-in React DevTools panel for monitoring HTTP requests",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -51,7 +51,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/nicrosE/reqwatch"
+    "url": "git+https://github.com/trxyazilimgit/reqwatch.git"
   },
   "author": "nicrosE",
   "sideEffects": false
