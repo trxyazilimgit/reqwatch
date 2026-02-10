@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import type { DockPosition, RequestLog, ReqWatchProps } from './types'
 import { useFetchInterceptor } from './use-fetch-interceptor'
+import { useServerLogs } from './use-server-logs'
 import { readStorage, writeStorage, toCurl, copyText } from './utils'
 import {
   IconX, IconTrash, IconChevronDown, IconChevronRight,
@@ -18,6 +19,7 @@ import {
   errorBoxStyle, bodyLabelStyle, preStyle,
   statusColor, methodBadgeStyle, urlTextStyle,
   durationStyle, timeStyle, chevronStyle, copyBtnSmallStyle,
+  sourceBadgeStyle, serverDotStyle,
   colors,
 } from './styles'
 
@@ -40,6 +42,7 @@ export function ReqWatch({
   maxLogs = 100,
   defaultOpen = false,
   storageKey = '__reqwatch',
+  serverPort = 4819,
 }: ReqWatchProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen)
   const [dock, setDock] = useState<DockPosition>(defaultDock)
@@ -52,12 +55,16 @@ export function ReqWatch({
   const [isDragging, setIsDragging] = useState(false)
   const [handleHovered, setHandleHovered] = useState(false)
 
-  // Fetch interceptor
+  // Log handler shared by both interceptors
   const handleLog = useCallback((log: RequestLog) => {
     setLogs(prev => [log, ...prev].slice(0, maxLogs))
   }, [maxLogs])
 
+  // Client-side fetch interceptor
   useFetchInterceptor(maxLogs, handleLog)
+
+  // Server-side SSE connection
+  const serverConnected = useServerLogs(serverPort, handleLog)
 
   // Restore state from localStorage
   useEffect(() => {
@@ -175,7 +182,8 @@ export function ReqWatch({
     ? logs.filter(l =>
         l.url.toLowerCase().includes(filter.toLowerCase()) ||
         l.method.toLowerCase().includes(filter.toLowerCase()) ||
-        String(l.status).includes(filter)
+        String(l.status).includes(filter) ||
+        l.source.includes(filter.toLowerCase())
       )
     : logs
 
@@ -197,11 +205,19 @@ export function ReqWatch({
         <span style={titleStyle}>ReqWatch</span>
         <span style={countStyle}>({filtered.length})</span>
 
+        {/* Server connection indicator */}
+        {serverPort !== 0 && (
+          <span
+            style={serverDotStyle(serverConnected)}
+            title={serverConnected ? 'Server connected' : 'Server disconnected'}
+          />
+        )}
+
         <input
           type="text"
           value={filter}
           onChange={e => setFilter(e.target.value)}
-          placeholder="Filter..."
+          placeholder="Filter by URL, method, status, source..."
           style={filterInputStyle}
           onFocus={e => { e.currentTarget.style.borderColor = colors.blue }}
           onBlur={e => { e.currentTarget.style.borderColor = colors.surface1 }}
@@ -271,6 +287,9 @@ export function ReqWatch({
               >
                 <span style={chevronStyle}>
                   {isExpanded ? <IconChevronDown /> : <IconChevronRight />}
+                </span>
+                <span style={sourceBadgeStyle(log.source)}>
+                  {log.source === 'server' ? 'SSR' : 'CLI'}
                 </span>
                 <span style={methodBadgeStyle(log.method)}>{log.method}</span>
                 <span style={{ fontWeight: 700, flexShrink: 0, fontVariantNumeric: 'tabular-nums', color: statusColor(log.status, log.success) }}>

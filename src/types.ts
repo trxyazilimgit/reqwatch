@@ -12,6 +12,7 @@ export interface RequestLog {
   error?: string
   success: boolean
   timestamp: Date
+  source: 'client' | 'server'
 }
 
 export interface ReqWatchProps {
@@ -25,6 +26,8 @@ export interface ReqWatchProps {
   defaultOpen?: boolean
   /** localStorage key prefix. Default: "__reqwatch" */
   storageKey?: string
+  /** Port for server-side log SSE connection. Default: 4819. Set to 0 to disable. */
+  serverPort?: number
 }
 
 export interface StoredState {

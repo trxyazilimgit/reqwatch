@@ -286,4 +286,28 @@ export const copyBtnSmallStyle: CSSProperties = {
   alignItems: 'center',
 }
 
+export function sourceBadgeStyle(source: 'client' | 'server'): CSSProperties {
+  const isServer = source === 'server'
+  return {
+    padding: '1px 4px',
+    borderRadius: 3,
+    fontSize: '9px',
+    fontWeight: 700,
+    flexShrink: 0,
+    letterSpacing: '0.5px',
+    textTransform: 'uppercase',
+    backgroundColor: isServer ? 'rgba(203,166,247,0.2)' : 'rgba(166,227,161,0.15)',
+    color: isServer ? c.mauve : c.green,
+  }
+}
+
+export const serverDotStyle = (connected: boolean): CSSProperties => ({
+  width: 7,
+  height: 7,
+  borderRadius: '50%',
+  backgroundColor: connected ? c.green : c.overlay0,
+  flexShrink: 0,
+  transition: 'background-color 0.3s',
+})
+
 export const colors = c

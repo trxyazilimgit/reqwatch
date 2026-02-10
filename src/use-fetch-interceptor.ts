@@ -48,6 +48,7 @@ export function useFetchInterceptor(maxLogs: number, onLog: (log: RequestLog) =>
           responseBody,
           success: response.ok,
           timestamp: new Date(),
+          source: 'client',
         }
 
         window.dispatchEvent(new CustomEvent(REQWATCH_EVENT, { detail: log }))
@@ -66,6 +67,7 @@ export function useFetchInterceptor(maxLogs: number, onLog: (log: RequestLog) =>
           error: error instanceof Error ? error.message : String(error),
           success: false,
           timestamp: new Date(),
+          source: 'client',
         }
 
         window.dispatchEvent(new CustomEvent(REQWATCH_EVENT, { detail: log }))
