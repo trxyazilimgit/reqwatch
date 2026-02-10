@@ -1,6 +1,6 @@
 {
   "name": "@trxyazilim/reqwatch",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Drop-in React DevTools panel for monitoring HTTP requests",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -12,6 +12,7 @@
       "require": "./dist/index.js"
     },
     "./server": {
+      "types": "./dist/server.d.ts",
       "import": "./dist/server.mjs",
       "require": "./dist/server.js"
     }
@@ -20,7 +21,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && echo 'export {}' > dist/server.d.ts && echo 'export {}' > dist/server.d.mts",
     "dev": "tsup --watch"
   },
   "peerDependencies": {
